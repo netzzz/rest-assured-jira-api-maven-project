@@ -10,7 +10,7 @@
 6) Follow the official [Basic auth for REST APIs](https://developer.atlassian.com/cloud/jira/platform/basic-auth-for-rest-apis/) guide to generate an authorization token.  
 7) Modify the baseURI String in JiraApiTestMethods:  
    Update the baseURI to reflect the Jira site name created in Step 5  
-8) Update the addIssue(String, String, String) Method in JiraApiTests:  
+8) Update the addIssue() Method Call in JiraApiTests:  
    Ensure the method references your Jira Project Key  
 9) Modify returnAuthorizationToken() in JiraApiData:  
    Update this method to return the authorization token created in Step 6.  

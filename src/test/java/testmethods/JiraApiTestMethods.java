@@ -4,41 +4,37 @@ import static io.restassured.RestAssured.given;
 
 import java.io.File;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.testng.Assert;
 
 import data.HttpResponseStatusCodes;
 import data.JiraApiData;
-import helperfunctions.HelperFunctions;
 import io.restassured.RestAssured;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
+import pojo.requests.addissue.AddIssueRequestBody;
+import pojo.requests.addissue.AddIssueRequestBodyFields;
+import pojo.requests.addissue.AddIssueRequestBodyIssueTypeField;
+import pojo.requests.addissue.AddIssueRequestBodyProjectField;
+import utils.HelperFunctions;
 
 public class JiraApiTestMethods {
-	private static final Logger logger = LogManager.getLogger(JiraApiTestMethods.class.getName());
+	private static String baseURI = "https://nemanja-apipractice.atlassian.net";
 
-	private static String baseURI = "https://<JiraSiteName>.atlassian.net";
-
-	// ------------------------
-	// Add Issue Methods
-
-	public static Response addIssue(String projectKey, String issueSummary, String issueType) {
+	public static Response addIssue(String projectKey, String issueSummary, String issueTypeName) throws Exception{
 		RestAssured.baseURI = baseURI;
+
+		AddIssueRequestBodyProjectField addIssueRequestBodyProjectField = new AddIssueRequestBodyProjectField(projectKey);
+		AddIssueRequestBodyIssueTypeField addIssueRequestBodyIssueTypeField = new AddIssueRequestBodyIssueTypeField(issueTypeName);
+		AddIssueRequestBodyFields addIssueRequestBodyFields = new AddIssueRequestBodyFields(addIssueRequestBodyProjectField, 
+				issueSummary, addIssueRequestBodyIssueTypeField);
+
+		AddIssueRequestBody addIssueRequestBody = new AddIssueRequestBody(addIssueRequestBodyFields);
 
 		return given().header("Content-Type", "application/json")
 				.header("Authorization",JiraApiData.returnAuthorizationToken())
-				.body(JiraApiData.returnAddIssueRequestBody(projectKey, issueSummary, issueType))
+				.body(addIssueRequestBody)
 				.when().post("rest/api/3/issue")
 				.then().extract().response();
-	}
-
-	public static void validateAddIssue(Response addIssue) {
-		Assert.assertEquals(addIssue.getStatusCode(), HttpResponseStatusCodes.CREATED.getCode(),
-				String.format("Add Issue Response Status Code is %d as Not Expected", 
-						addIssue.getStatusCode()));
-		logger.info(String.format("Add Issue Response Status Code is %d as Expected", 
-				HttpResponseStatusCodes.CREATED.getCode()));
 	}
 
 	public static int getAddedIssueId(Response addIssue) {
@@ -46,10 +42,7 @@ public class JiraApiTestMethods {
 		return addIssueResponseJson.getInt("id");
 	}
 
-	// ------------------------
-	// Add Attachment Methods
-
-	public static Response addAttachment(int issueId, String filePath) {
+	public static Response addAttachment(int issueId, String filePath) throws Exception{
 		RestAssured.baseURI = baseURI;
 
 		return given().header("Authorization", JiraApiData.returnAuthorizationToken())
@@ -57,46 +50,24 @@ public class JiraApiTestMethods {
 				.post("rest/api/3/issue/" + issueId + "/attachments");
 	}
 
-	public static void validateAddAttachment(Response addAttachment) {
-		Assert.assertEquals(addAttachment.getStatusCode(), HttpResponseStatusCodes.OK.getCode(),
-				String.format("Add Attachment Response Status Code is %d as Not Expected", 
-						addAttachment.getStatusCode()));
-		logger.info(String.format("Add Attachment Response Status Code is %d as Expected", 
-				HttpResponseStatusCodes.OK.getCode()));
-	}
-
-	// ------------------------
-	// Get Issue Methods
-
-	public static Response getIssue(int issueId) {
+	public static Response getIssue(int issueId) throws Exception{
 		RestAssured.baseURI = baseURI;
 
 		return given().header("Authorization", JiraApiData.returnAuthorizationToken())
 				.header("Accept", "application/json").get("rest/api/3/issue/" + issueId);
 	}
 
-	public static void validateGetIssue(Response getIssue) {
-		Assert.assertEquals(getIssue.getStatusCode(), HttpResponseStatusCodes.OK.getCode(),
-				String.format("Get Issue Response Status Code is %d as Not Expected", 
-						getIssue.getStatusCode()));
-		logger.info(String.format("Get Issue Response Status Code is %d as Expected", 
-				HttpResponseStatusCodes.OK.getCode()));
-	}
-
-	// ------------------------
-	// Delete Issue Methods
-
-	public static Response deleteIssue(int issueId) {
+	public static Response deleteIssue(int issueId) throws Exception{
 		RestAssured.baseURI = baseURI;
 		return given().header("Authorization", JiraApiData.returnAuthorizationToken())
 				.header("Accept", "application/json").delete("rest/api/3/issue/" + issueId);
 	}
 
-	public static void validateDeleteIssue(Response deleteIssue) {
-		Assert.assertEquals(deleteIssue.getStatusCode(), HttpResponseStatusCodes.NOCONTENT.getCode(),
-				String.format("Delete Issue Response Status Code is %d as Not Expected", 
-						deleteIssue.getStatusCode()));
-		logger.info(String.format("Delete Issue Response Status Code is %d as Expected", 
-						HttpResponseStatusCodes.NOCONTENT.getCode()));
+	public static void validateStatusCodeOfResponse(String requestName, Response response, 
+			HttpResponseStatusCodes expectedResponseStatusCode) {
+		Assert.assertEquals(response.getStatusCode(), expectedResponseStatusCode.getCode(),
+				String.format("Status Code for %s Request is %d as Not Expected", requestName, response.getStatusCode()));
+		HelperFunctions.logToReportAndLog4j(String.format("Status Code for %s Request is %d as Expected", requestName,
+				expectedResponseStatusCode.getCode()));
 	}
 }

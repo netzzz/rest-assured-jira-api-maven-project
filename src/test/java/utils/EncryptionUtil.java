@@ -8,19 +8,19 @@ import javax.crypto.spec.SecretKeySpec;
 public class EncryptionUtil {
     private static final String KEY = System.getenv("SECRET_KEY");
 
-    public static String encrypt(String value) throws Exception {
+    public static String encrypt(String valueToEncrypt) throws Exception {
         Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
         SecretKeySpec keySpec = new SecretKeySpec(KEY.getBytes(), "AES");
         cipher.init(Cipher.ENCRYPT_MODE, keySpec);
-        byte[] encrypted = cipher.doFinal(value.getBytes());
+        byte[] encrypted = cipher.doFinal(valueToEncrypt.getBytes());
         return Base64.getEncoder().encodeToString(encrypted);
     }
 
-    public static String decrypt(String encrypted) throws Exception {
+    public static String decrypt(String valueToDecrypt) throws Exception {
         Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5PADDING");
         SecretKeySpec keySpec = new SecretKeySpec(KEY.getBytes(), "AES");
         cipher.init(Cipher.DECRYPT_MODE, keySpec);
-        byte[] decoded = Base64.getDecoder().decode(encrypted);
-        return new String(cipher.doFinal(decoded));
+        byte[] decrypted = Base64.getDecoder().decode(valueToDecrypt);
+        return new String(cipher.doFinal(decrypted));
     }
 }
